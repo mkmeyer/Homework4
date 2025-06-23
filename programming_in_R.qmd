@@ -1,0 +1,28 @@
+---
+title: "programming_in_R"
+format: pdf
+editor: visual
+---
+
+## Task One: Conceptual Questions
+
+### Question 1: What is the purpose of the `lapply()` function? What is the equivalent `purrr` function?
+
+The `lapply()` function is used for list objects. It applies the specified function to every element of the list and then returns a list. The equivalent `purrr` function is `map()`.
+
+### Question 2: Suppose we have a list called `my_list`. Each element of the list is a numeric data frame (all columns
+are numeric). We want use `lapply()` to run the code `cor(numeric_matrix, method = "kendall")`
+on each element of the list. Write code to do this below! (I’m really trying to ask you how you specify
+`method = "kendall"` when calling `lapply()`)
+
+```{r}
+lapply(X = my_list, 
+       FUN = cor,
+       method = "kendall")
+```
+
+### Question 3: What are two advantages of using `purrr` functions instead of the `BaseR` apply family?
+
+One advantages of the `purrr` functions is that they are generally more consistent (additional arguments can be specified under the same naming conventions, the order of arguments is consistent, etc.). Another advantage is that the `purrr` functions contain useful helper functions (like `partial()`) and variants (like `map2()`). 
+
+### Question 4: What is a side-effect function?
