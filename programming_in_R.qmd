@@ -123,13 +123,20 @@ getMAE(resp, pred, na.rm = TRUE)
 ### Question 5: Writing a Wrapper Function to Calculate RMSE and MAE
 
 ```{r}
-wrapper <- function(resp, pred, ...) {
-  if (is.vector(resp) & is.numeric(resp) & is.vector(pred) & is.numeric(pred)) {
-    rmse <- getRMSE(resp, pred)
-    mae <- getMAE(resp, pred)
-  } else {
-    print("ERROR: either the responses or the predictions are not a numeric vector")
+wrapper <- function(resp, pred, metric = "both", ...) {
+  if (!is.vector(resp) | !is.numeric(resp) | !is.vector(pred) | !is.numeric(pred)) {
+    print("ERROR: the responses and/or the predictions are not a numeric vector")
     stop()
+  } else if (metric == "both") {
+    rmse <- getRMSE(resp, pred, ...)
+    mae <- getMAE(resp, pred, ...)
+    return(list("RMSE" = rmse, "MAE" = mae))
+  } else if (metric == "rmse" | metric == "RMSE") {
+    rmse <- getRMSE(resp, pred, ...)
+    return("RMSE" = rmse)
+  } else if (metric == "mae" | metric == "MAE") {
+    mae <- getMAE(resp, pred, ...)
+    return("MAE" = mae)
   }
   return(list("rmse" = rmse, "mae" = mae))
 }
@@ -146,6 +153,36 @@ pred <- predict(lm(resp ~ x), data.frame(x))
 ```
 
 ```{r}
+wrapper(resp, pred)
+```
 
+```{r}
+wrapper(resp, pred, "rmse")
+```
+
+```{r}
+wrapper(resp, pred, "mae")
+```
+
+```{r}
+#Replacing several observations with missing values
+resp[3] <- NA
+resp[55] <- NA
+```
+
+```{r}
+wrapper(resp, pred, na.rm = TRUE)
+```
+
+```{r}
+wrapper(resp, pred, "rmse", na.rm = TRUE)
+```
+
+```{r}
+wrapper(resp, pred, "mae", na.rm = TRUE)
+```
+
+```{r}
+wrapper(resp, cars)
 ```
 
