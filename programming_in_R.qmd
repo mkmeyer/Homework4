@@ -26,3 +26,126 @@ lapply(X = my_list,
 One advantages of the `purrr` functions is that they are generally more consistent (additional arguments can be specified under the same naming conventions, the order of arguments is consistent, etc.). Another advantage is that the `purrr` functions contain useful helper functions (like `partial()`) and variants (like `map2()`). 
 
 ### Question 4: What is a side-effect function?
+
+A side-effect function uses the data to perform a task, but when the task is complete it returns the original data unmodified. 
+
+### Question 5: Why can you name a variable `sd` in a function and not cause any issues with the `sd` function?
+
+Variables that are created in functions are only stored temporarily in the function environment. They are not kept after the function call is finished, and therefore never stored in the global environment. 
+
+## Task Two: Writing R Functions
+
+### Question 1: Writing RMSE function
+
+```{r}
+getRMSE <- function(resp, pred, ...) {
+  sq_diff <- (resp - pred)^2
+  mean <- mean(sq_diff, ...)
+  rmse <- sqrt(mean)
+  return(rmse)
+  }
+```
+
+### Question 2: Testing RMSE function
+
+```{r}
+#Generating test data
+set.seed(10) #setting random seed so that data can be replicated
+n <- 100
+x <- runif(n)
+resp <- 3 + 10*x + rnorm(n)
+pred <- predict(lm(resp ~ x), data.frame(x))
+```
+
+```{r}
+#Testing my RMSE function
+getRMSE(resp, pred)
+```
+
+```{r}
+#Replacing several observations with missing values
+resp[3] <- NA
+resp[55] <- NA
+```
+
+```{r}
+#Testing my RMSE function without specifying missing values behavior
+getRMSE(resp, pred)
+```
+
+```{r}
+#Testing my RMSE function with specifying missing values behavior
+getRMSE(resp, pred, na.rm = TRUE)
+```
+
+## Question 3: Writing Mean Absolute Deviation Function
+
+```{r}
+getMAE <- function(resp, pred, ...){
+  diff <- resp - pred
+  abs_diff <- abs(diff)
+  mae <- mean(abs_diff, ...)
+  return(mae)
+}
+```
+
+## Question 4: Testing MAE Function
+
+```{r}
+set.seed(10)
+n <- 100
+x <- runif(n)
+resp <- 3 + 10*x + rnorm(n)
+pred <- predict(lm(resp ~ x), data.frame(x))
+```
+
+```{r}
+#Testing my MAE function
+getMAE(resp, pred)
+```
+
+```{r}
+#Replacing several observations with missing values
+resp[3] <- NA
+resp[55] <- NA
+```
+
+```{r}
+#Testing my MAE function without specifying missing values behavior
+getMAE(resp, pred)
+```
+
+```{r}
+#Testing my MAE function with specifying missing values behavior
+getMAE(resp, pred, na.rm = TRUE)
+```
+
+### Question 5: Writing a Wrapper Function to Calculate RMSE and MAE
+
+```{r}
+wrapper <- function(resp, pred, ...) {
+  if (is.vector(resp) & is.numeric(resp) & is.vector(pred) & is.numeric(pred)) {
+    rmse <- getRMSE(resp, pred)
+    mae <- getMAE(resp, pred)
+  } else {
+    print("ERROR: either the responses or the predictions are not a numeric vector")
+    stop()
+  }
+  return(list("rmse" = rmse, "mae" = mae))
+}
+```
+
+### Question 6: Testing the Wrapper Function
+
+```{r}
+set.seed(10)
+n <- 100
+x <- runif(n)
+resp <- 3 + 10*x + rnorm(n)
+pred <- predict(lm(resp ~ x), data.frame(x))
+```
+
+```{r}
+
+```
+
