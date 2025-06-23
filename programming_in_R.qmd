@@ -186,3 +186,22 @@ wrapper(resp, pred, "mae", na.rm = TRUE)
 wrapper(resp, cars)
 ```
 
+## Task Three: Querying an API and a Tidy-Style Function
+
+### Question 1: Using `GET` from the `httr` package
+
+```{r}
+library("httr")
+
+news_info <- httr::GET("https://newsapi.org/v2/top-headlines?q=loveisland&apiKey=0617778f612b4946859a211593d3efda")
+```
+
+### Question 2: Parsing
+
+```{r}
+library("jsonlite")
+
+parsed_news_info <- fromJSON(rawToChar(news_info$content))
+```
+
+### Question 3: Writing a Function to Query the API
