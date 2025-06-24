@@ -4,6 +4,11 @@ format: pdf
 editor: visual
 ---
 
+```{r, include=FALSE}
+rm(list=ls())
+```
+
+
 ## Task One: Conceptual Questions
 
 ### Question 1: What is the purpose of the `lapply()` function? What is the equivalent `purrr` function?
@@ -16,9 +21,9 @@ on each element of the list. Write code to do this below! (I’m really trying t
 `method = "kendall"` when calling `lapply()`)
 
 ```{r}
-lapply(X = my_list, 
-       FUN = cor,
-       method = "kendall")
+# lapply(X = my_list, 
+#        FUN = cor,
+#        method = "kendall")
 ```
 
 ### Question 3: What are two advantages of using `purrr` functions instead of the `BaseR` apply family?
@@ -33,16 +38,19 @@ A side-effect function uses the data to perform a task, but when the task is com
 
 Variables that are created in functions are only stored temporarily in the function environment. They are not kept after the function call is finished, and therefore never stored in the global environment. 
 
+\newpage
+
 ## Task Two: Writing R Functions
 
 ### Question 1: Writing RMSE function
 
 ```{r}
-getRMSE <- function(resp, pred, ...) {
-  sq_diff <- (resp - pred)^2
-  mean <- mean(sq_diff, ...)
-  rmse <- sqrt(mean)
-  return(rmse)
+#Writing the RMSE function as taking in two vectors
+getRMSE <- function(resp_vec, pred_vec, ...) {
+  sq_error <- (resp_vec - pred_vec)^2 #finding square error
+  mean <- mean(sq_error, ...) #finding mean square error (MSE)
+  rmse <- sqrt(mean) #finding root MSE
+  return(rmse) #returning the calculated RMSE value
   }
 ```
 
@@ -51,157 +59,228 @@ getRMSE <- function(resp, pred, ...) {
 ```{r}
 #Generating test data
 set.seed(10) #setting random seed so that data can be replicated
-n <- 100
-x <- runif(n)
-resp <- 3 + 10*x + rnorm(n)
-pred <- predict(lm(resp ~ x), data.frame(x))
+n <- 100 #we want 100 generated data points
+x <- runif(n) #randomly generating 100 data points from the uniform distribution
+resp <- 3 + 10*x + rnorm(n) #generating response data
+pred <- predict(lm(resp ~ x), data.frame(x)) #generating prediction data
 ```
 
+Testing my RMSE function
 ```{r}
-#Testing my RMSE function
 getRMSE(resp, pred)
 ```
 
+Replacing several observations with missing values
 ```{r}
-#Replacing several observations with missing values
-resp[3] <- NA
-resp[55] <- NA
+resp[3] <- NA_real_ #setting the third response to missing
+resp[55] <- NA_real_ #setting the 55th response to missing
 ```
 
+Testing my RMSE function without specifying missing values behavior
 ```{r}
-#Testing my RMSE function without specifying missing values behavior
 getRMSE(resp, pred)
 ```
 
+Testing my RMSE function with removing missing values
 ```{r}
-#Testing my RMSE function with specifying missing values behavior
 getRMSE(resp, pred, na.rm = TRUE)
 ```
 
 ## Question 3: Writing Mean Absolute Deviation Function
 
 ```{r}
-getMAE <- function(resp, pred, ...){
-  diff <- resp - pred
-  abs_diff <- abs(diff)
-  mae <- mean(abs_diff, ...)
-  return(mae)
+#Writing the MAE function as taking in two vectors
+getMAE <- function(resp_vec, pred_vec, ...){
+  diff <- resp_vec - pred_vec #finding the difference between prediction and response
+  abs_diff <- abs(diff) #finding the absolute difference
+  mae <- mean(abs_diff, ...) #finding MAE
+  return(mae) #returning MAE
 }
 ```
 
 ## Question 4: Testing MAE Function
 
+Generating Test Data
 ```{r}
-set.seed(10)
-n <- 100
-x <- runif(n)
-resp <- 3 + 10*x + rnorm(n)
-pred <- predict(lm(resp ~ x), data.frame(x))
+set.seed(10) #setting random seed so that data can be replicated
+n <- 100 #we want 100 generated data points
+x <- runif(n) #randomly generating 100 data points from the uniform distribution
+resp <- 3 + 10*x + rnorm(n) #generating response data
+pred <- predict(lm(resp ~ x), data.frame(x)) #generating prediction data
 ```
 
+Testing my MAE function
 ```{r}
-#Testing my MAE function
 getMAE(resp, pred)
 ```
 
+Replacing several observations with missing values
 ```{r}
-#Replacing several observations with missing values
-resp[3] <- NA
-resp[55] <- NA
+resp[3] <- NA_real_ #setting the third response to missing
+resp[55] <- NA_real_ #setting the 55th response to missing
 ```
 
+
+Testing my MAE function without specifying missing values behavior
 ```{r}
-#Testing my MAE function without specifying missing values behavior
 getMAE(resp, pred)
 ```
 
+Testing my MAE function with removing missing values
 ```{r}
-#Testing my MAE function with specifying missing values behavior
 getMAE(resp, pred, na.rm = TRUE)
 ```
 
 ### Question 5: Writing a Wrapper Function to Calculate RMSE and MAE
 
 ```{r}
-wrapper <- function(resp, pred, metric = "both", ...) {
-  if (!is.vector(resp) | !is.numeric(resp) | !is.vector(pred) | !is.numeric(pred)) {
-    print("ERROR: the responses and/or the predictions are not a numeric vector")
-    stop()
-  } else if (metric == "both") {
-    rmse <- getRMSE(resp, pred, ...)
-    mae <- getMAE(resp, pred, ...)
-    return(list("RMSE" = rmse, "MAE" = mae))
-  } else if (metric == "rmse" | metric == "RMSE") {
-    rmse <- getRMSE(resp, pred, ...)
-    return("RMSE" = rmse)
-  } else if (metric == "mae" | metric == "MAE") {
-    mae <- getMAE(resp, pred, ...)
-    return("MAE" = mae)
+wrapper <- function(resp_vec, pred_vec, metric = c("RMSE", "MAE"), ...) {
+  if (!is.vector(resp_vec) | !is.vector(pred_vec) | #checking vectors
+      !is.numeric(resp_vec) | !is.numeric(pred_vec) | #checking numeric
+      !is.atomic(resp_vec) | !is.atomic(pred_vec)) { #checking atomic
+    print("ERROR: the responses and/or the predictions are not a numeric(atomic) vector")
+    } else if (all(c("RMSE","MAE") %in% metric)) { #checking for both metrics
+      rmse <- getRMSE(resp_vec, pred_vec, ...) #calculating RMSE
+      mae <- getMAE(resp_vec, pred_vec, ...) #calculating MAE
+      return(c(paste("RMSE =", rmse), paste("MAE =", mae)))
+      } else if (metric == "rmse" | metric == "RMSE") { #checking for RMSE
+        rmse <- getRMSE(resp_vec, pred_vec, ...) #calculating RMSE
+        return(paste("RMSE =", rmse))
+        } else if (metric == "mae" | metric == "MAE") { #checking for MAE
+          mae <- getMAE(resp_vec, pred_vec, ...) #calculating MAE
+          return(paste("MAE =", mae))
+        }
   }
-  return(list("rmse" = rmse, "mae" = mae))
-}
 ```
 
 ### Question 6: Testing the Wrapper Function
 
 ```{r}
-set.seed(10)
-n <- 100
-x <- runif(n)
-resp <- 3 + 10*x + rnorm(n)
-pred <- predict(lm(resp ~ x), data.frame(x))
+#Generating Test Data
+set.seed(10) #setting random seed so that data can be replicated
+n <- 100 #we want 100 generated data points
+x <- runif(n) #randomly generating 100 data points from the uniform distribution
+resp <- 3 + 10*x + rnorm(n) #generating response data
+pred <- predict(lm(resp ~ x), data.frame(x)) #generating prediction data
 ```
 
+Testing the Wrapper Function Under Metric Default (Both)
 ```{r}
 wrapper(resp, pred)
 ```
 
+Testing the Wrapper Function Specifying RMSE as the Metric
 ```{r}
 wrapper(resp, pred, "rmse")
 ```
 
+Testing the Wrapper Function Specifying MAE as the Metric
 ```{r}
 wrapper(resp, pred, "mae")
 ```
 
+Replacing several observations with missing values
 ```{r}
-#Replacing several observations with missing values
-resp[3] <- NA
-resp[55] <- NA
+resp[3] <- NA_real_ #setting the third response to missing
+resp[55] <- NA_real_ #setting the 55th response to missing
 ```
 
+Testing the Wrapper Function Under Metric Default (Both) with Missing Data
+```{r}
+wrapper(resp, pred)
+```
+
+Testing the Wrapper Function Under Metric Default (Both) with Missing Data Removed
 ```{r}
 wrapper(resp, pred, na.rm = TRUE)
 ```
 
+Testing the Wrapper Function Specifying RMSE as the Metric with Missing Data
+```{r}
+wrapper(resp, pred, "rmse")
+```
+
+Testing the Wrapper Function Specifying RMSE as the Metric with Missing Data Removed
 ```{r}
 wrapper(resp, pred, "rmse", na.rm = TRUE)
 ```
 
+Testing the Wrapper Function Specifying MAE as the Metric with Missing Data
+```{r}
+wrapper(resp, pred, "mae")
+```
+
+Testing the Wrapper Function Specifying MAE as the Metric with Missing Data Removed
 ```{r}
 wrapper(resp, pred, "mae", na.rm = TRUE)
 ```
 
+Testing the Wrapper Function When Both Arguments are not Vectors
 ```{r}
-wrapper(resp, cars)
+resp_df <- as.data.frame(resp) #converting responses to a data frame
+pred_df <- as.data.frame(pred) #converting predictions to a data frame
+
+wrapper(resp_df, pred_df)
 ```
+
+Testing the Wrapper Function When Response Argument is not a Vector
+```{r}
+wrapper(resp, pred_df)
+```
+
+Testing the Wrapper Function When Prediction Argument is not a Vector
+```{r}
+wrapper(resp_df, pred)
+```
+
+\newpage
 
 ## Task Three: Querying an API and a Tidy-Style Function
 
-### Question 1: Using `GET` from the `httr` package
+This information sometimes get cut off, but my API key is 0617778f612b4946859a211593d3efda. 
 
-```{r}
+### Question 1: Using `GET` from the `httr` Package to Pull News Info
+
+```{r, warning=FALSE, message=FALSE}
+#Loading required packages
 library("httr")
 
-news_info <- httr::GET("https://newsapi.org/v2/top-headlines?q=loveisland&apiKey=0617778f612b4946859a211593d3efda")
+#Using httr::GET to collect information about the Pacers in the news
+pacers_info <- httr::GET("https://newsapi.org/v2/everything?q=pacers&from=2025-06-22&apiKey=0617778f612b4946859a211593d3efda")
+pacers_info
 ```
 
-### Question 2: Parsing
+### Question 2: Parsing the News Info to Pull Articles
 
-```{r}
+```{r, warning=FALSE, message=FALSE}
+#Loading required packages
+library("tidyverse")
 library("jsonlite")
 
-parsed_news_info <- fromJSON(rawToChar(news_info$content))
+#Parsing the news information about the Pacers
+parsed_pacers_info <- fromJSON(rawToChar(pacers_info$content))
+pacers_data <- as_tibble(parsed_pacers_info$articles) #pulling articles
+pacers_data #displaying the article information
 ```
 
 ### Question 3: Writing a Function to Query the API
+
+```{r}
+api_query <- function(subject, time, key){
+  url = paste0("https://newsapi.org/v2/everything?q=", #base of URL
+               subject, #adding subject to URL
+               "&from=", time, #adding time to URL
+               "&apiKey=", key) #adding API key to URL
+  subject_info <- httr::GET(url) #extracting news info
+  parsed_subject_info <- fromJSON(rawToChar(subject_info$content)) #parsing content of news
+  subject_data <- as_tibble(parsed_subject_info$articles) #pulling articles
+  return(subject_data)
+}
+```
+
+
+Testing my Short Function to Query the API
+```{r}
+api_query("gamestop", "2025-05-24", "0617778f612b4946859a211593d3efda")
+```
+
